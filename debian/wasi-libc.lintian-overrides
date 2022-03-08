@@ -1,0 +1,3 @@
+# wasm object files count as arch-independent for now,
+# at least until we starting offering Debian in wasm
+wasi-libc binary: arch-independent-package-contains-binary-or-object usr/lib/*-wasi/*.a

@@ -1,0 +1,49 @@
+Index: wasi-libc/Makefile
+===================================================================
+--- wasi-libc.orig/Makefile
++++ wasi-libc/Makefile
+@@ -432,6 +432,8 @@ include_dirs:
+ 	# Remove selected header files.
+ 	$(RM) $(patsubst %,$(SYSROOT_INC)/%,$(MUSL_OMIT_HEADERS))
+ 
++	touch $@
++
+ startup_files: include_dirs
+ 	#
+ 	# Build the startup files.
+@@ -442,6 +444,8 @@ startup_files: include_dirs
+ 	mkdir -p "$(SYSROOT_LIB)" && \
+ 	mv *.o "$(SYSROOT_LIB)"
+ 
++	touch $@
++
+ libc: include_dirs \
+     $(SYSROOT_LIB)/libc.a \
+     $(SYSROOT_LIB)/libc-printscan-long-double.a \
+@@ -451,6 +455,8 @@ libc: include_dirs \
+     $(SYSROOT_LIB)/libwasi-emulated-getpid.a \
+     $(SYSROOT_LIB)/libwasi-emulated-signal.a
+ 
++	touch $@
++
+ finish: startup_files libc
+ 	#
+ 	# Create empty placeholder libraries.
+@@ -462,6 +468,7 @@ finish: startup_files libc
+ 	#
+ 	# The build succeeded! The generated sysroot is in $(SYSROOT).
+ 	#
++	touch $@
+ 
+ # The check for defined and undefined symbols expects there to be a heap
+ # alloctor (providing malloc, calloc, free, etc). Skip this step if the build
+@@ -550,4 +557,8 @@ install: finish
+ 	mkdir -p "$(INSTALL_DIR)"
+ 	cp -r "$(SYSROOT)/lib" "$(SYSROOT)/share" "$(SYSROOT)/include" "$(INSTALL_DIR)"
+ 
+-.PHONY: default startup_files libc finish install include_dirs
++clean:
++	rm -f include_dirs startup_files libc finish
++	rm -rf build sysroot
++
++.PHONY: default install

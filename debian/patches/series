@@ -1,0 +1,3 @@
+dont-rebuild-install.patch
+debian-flags.patch
+disable-warning.patch

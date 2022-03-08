@@ -1,0 +1,4 @@
+version=4
+opts="mode=git, pgpmode=none" \
+https://salsa.debian.org/rust-team/wasi-libc \
+heads/upstream-orig

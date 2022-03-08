@@ -1,0 +1,18 @@
+Embedded MUSL
+=============
+
+This package embeds a copy of MUSL because its main reverse-dependency (rustc)
+is very sensitive to its exact ABI and we do not want to have to co-ordinate
+upgrades with the main musl package in Debian.
+
+Updating the package
+====================
+
+- In ``rust.git`` run ``debian/rules update-version`` as normal.
+- Look at ``debian/control`` and get the commit hash from Build-Depends-Indep
+- commit=<THE COMMIT HASH YOU GOT>
+- git remote add upstream https://github.com/WebAssembly/wasi-libc || true
+- git fetch upstream && git checkout upstream-orig && git reset --hard "$commit" && git push origin
+- git checkout master && uscan --verbose
+- gbp import-orig ../wasi-libc_0.0~git*.$commit.orig.tar.xz
+- Finally, update debian/* as normal

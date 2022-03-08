@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+
+# output every command that modifies files on the build system.
+#export DH_VERBOSE = 1
+
+include /usr/share/dpkg/buildflags.mk
+
+export WASM_NM = llvm-nm-13
+export WASM_AR = llvm-ar-13
+export WASM_CC = clang-13
+
+# stack protector not yet supported, see
+# https://github.com/CraneStation/wasi-libc/issues/157
+export WASM_CFLAGS = $(CFLAGS) $(LDFLAGS) -fno-stack-protector
+
+%:
+	dh $@
+
+.PHONY: build
+build:
+	dh $@
+
+override_dh_auto_build:
+	dh_auto_build -- finish
+
+override_dh_auto_install:
+	dh_auto_install -- INSTALL_DIR=$(CURDIR)/debian/tmp/usr

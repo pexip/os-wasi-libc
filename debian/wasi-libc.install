@@ -1,0 +1,3 @@
+usr/share/wasm32-wasi
+usr/lib/wasm32-wasi
+usr/include/* /usr/include/wasm32-wasi
