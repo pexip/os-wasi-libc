@@ -1,3 +1,9 @@
+wasi-libc (0.0~git20210922.ad51334-1pexip1) pexip; urgency=medium
+
+  * Prepare Pexip packaging
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Fri, 21 Oct 2022 13:06:57 +0100
+
 wasi-libc (0.0~git20210922.ad51334-1) unstable; urgency=medium
 
   * Upload to unstable.
