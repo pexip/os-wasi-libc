@@ -5,13 +5,13 @@
 
 include /usr/share/dpkg/buildflags.mk
 
-export WASM_NM = llvm-nm-13
-export WASM_AR = llvm-ar-13
-export WASM_CC = clang-13
+export NM = llvm-nm-14
+export AR = llvm-ar-14
+export CC = clang-14
 
 # stack protector not yet supported, see
 # https://github.com/CraneStation/wasi-libc/issues/157
-export WASM_CFLAGS = $(CFLAGS) $(LDFLAGS) -fno-stack-protector
+export EXTRA_CFLAGS = $(CFLAGS) $(LDFLAGS) -fno-stack-protector
 
 %:
 	dh $@

@@ -2,7 +2,7 @@ Index: wasi-libc/expected/wasm32-wasi/predefined-macros.txt
 ===================================================================
 --- wasi-libc.orig/expected/wasm32-wasi/predefined-macros.txt
 +++ wasi-libc/expected/wasm32-wasi/predefined-macros.txt
-@@ -1118,7 +1118,6 @@
+@@ -1120,7 +1120,6 @@
  #define NAN (0.0f/0.0f)
  #define NBBY 8
  #define NCARGS 131072
@@ -10,7 +10,7 @@ Index: wasi-libc/expected/wasm32-wasi/predefined-macros.txt
  #define ND_NA_FLAG_OVERRIDE 0x00000020
  #define ND_NA_FLAG_ROUTER 0x00000080
  #define ND_NA_FLAG_SOLICITED 0x00000040
-@@ -3102,7 +3101,7 @@
+@@ -3073,7 +3072,7 @@
  #define and_eq &=
  #define asin(x) __tg_real_complex(asin, (x))
  #define asinh(x) __tg_real_complex(asinh, (x))

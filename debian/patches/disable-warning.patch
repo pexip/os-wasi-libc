@@ -2,7 +2,7 @@ Index: wasi-libc/Makefile
 ===================================================================
 --- wasi-libc.orig/Makefile
 +++ wasi-libc/Makefile
-@@ -199,6 +199,7 @@ CFLAGS += -Wall -Wextra -Werror \
+@@ -207,6 +207,7 @@ CFLAGS += -Wall -Wextra -Werror \
    -Wno-missing-braces \
    -Wno-ignored-pragmas \
    -Wno-unused-but-set-variable \
