@@ -1,3 +1,9 @@
+wasi-libc (0.0~git20220510.9886d3d-2pexip1) pexip; urgency=medium
+
+  * New upstream release
+
+ -- Huw Jones <huw@pexip.com>  Thu, 12 Jan 2023 11:29:47 +0000
+
 wasi-libc (0.0~git20220510.9886d3d-2) unstable; urgency=medium
 
   * d/copyright: add missing license info
