@@ -9,6 +9,10 @@ Copyright:
  2018-2020 wasi-libc contributors
 License: CC0-1.0
 
+Files: libc-bottom-half/sources/accept.c
+Copyright: 2022 Harald Hoyer <harald@profian.com>
+License: BSD-2-clause
+
 Files: libc-bottom-half/cloudlibc/*
 Copyright: 2015-2017 Nuxi (https://nuxi.nl/) and contributors
 License: BSD-2-clause

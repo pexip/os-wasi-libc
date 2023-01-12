@@ -1,9 +1,14 @@
 # These variables are specifically meant to be overridable via the make
 # command-line.
-WASM_CC ?= clang
-WASM_NM ?= $(patsubst %clang,%llvm-nm,$(filter-out ccache sccache,$(WASM_CC)))
-WASM_AR ?= $(patsubst %clang,%llvm-ar,$(filter-out ccache sccache,$(WASM_CC)))
-WASM_CFLAGS ?= -O2 -DNDEBUG
+# ?= doesn't work for CC and AR because make has a default value for them.
+ifeq ($(origin CC), default)
+CC := clang
+endif
+NM ?= $(patsubst %clang,%llvm-nm,$(filter-out ccache sccache,$(CC)))
+ifeq ($(origin AR), default)
+AR = $(patsubst %clang,%llvm-ar,$(filter-out ccache sccache,$(CC)))
+endif
+EXTRA_CFLAGS ?= -O2 -DNDEBUG
 # The directory where we build the sysroot.
 SYSROOT ?= $(CURDIR)/sysroot
 # A directory to install to for "make install".
@@ -132,6 +137,7 @@ LIBC_TOP_HALF_MUSL_SOURCES = \
         env/setenv.c \
         env/unsetenv.c \
         unistd/posix_close.c \
+        stat/futimesat.c \
     ) \
     $(filter-out %/procfdname.c %/syscall.c %/syscall_ret.c %/vdso.c %/version.c, \
                  $(wildcard $(LIBC_TOP_HALF_MUSL_SRC_DIR)/internal/*.c)) \
@@ -183,8 +189,10 @@ LIBC_TOP_HALF_ALL_SOURCES = \
     $(LIBC_TOP_HALF_MUSL_SOURCES) \
     $(shell find $(LIBC_TOP_HALF_SOURCES) -name \*.c)
 
+# Add any extra flags
+CFLAGS = $(EXTRA_CFLAGS)
 # Set the target.
-CFLAGS = $(WASM_CFLAGS) --target=$(TARGET_TRIPLE)
+CFLAGS += --target=$(TARGET_TRIPLE)
 # WebAssembly floating-point match doesn't trap.
 # TODO: Add -fno-signaling-nans when the compiler supports it.
 CFLAGS += -fno-trapping-math
@@ -209,8 +217,19 @@ ifeq ($(THREAD_MODEL), posix)
 CFLAGS += -mthread-model posix -pthread
 endif
 
-# Set the sysroot.
-CFLAGS += --sysroot="$(SYSROOT)"
+# Expose the public headers to the implementation. We use `-isystem` for
+# purpose for two reasons:
+#
+# 1. It only does `<...>` not `"...."` lookup. We are making a libc,
+#    which is a system library, so all public headers should be
+#    accessible via `<...>` and never also need `"..."`. `-isystem` main
+#    purpose is to only effect `<...>` lookup.
+#
+# 2. The `-I` for private headers added for specific C files below
+#    should come earlier in the search path, so they can "override"
+#    and/or `#include_next` the public headers. `-isystem` (like
+#    `-idirafter`) comes later in the search path than `-I`.
+CFLAGS += -isystem "$(SYSROOT_INC)"
 
 # These variables describe the locations of various files and directories in
 # the build tree.
@@ -349,13 +368,13 @@ $(SYSROOT_LIB)/libwasi-emulated-signal.a: $(LIBWASI_EMULATED_SIGNAL_OBJS) $(LIBW
 %.a:
 	@mkdir -p "$(@D)"
 	# On Windows, the commandline for the ar invocation got too long, so it needs to be split up.
-	$(WASM_AR) crs $@ $(wordlist 1, 199, $^)
-	$(WASM_AR) crs $@ $(wordlist 200, 399, $^)
-	$(WASM_AR) crs $@ $(wordlist 400, 599, $^)
-	$(WASM_AR) crs $@ $(wordlist 600, 799, $^)
+	$(AR) crs $@ $(wordlist 1, 199, $^)
+	$(AR) crs $@ $(wordlist 200, 399, $^)
+	$(AR) crs $@ $(wordlist 400, 599, $^)
+	$(AR) crs $@ $(wordlist 600, 799, $^)
 	# This might eventually overflow again, but at least it'll do so in a loud way instead of
 	# silently dropping the tail.
-	$(WASM_AR) crs $@ $(wordlist 800, 100000, $^)
+	$(AR) crs $@ $(wordlist 800, 100000, $^)
 
 $(MUSL_PRINTSCAN_OBJS): CFLAGS += \
 	    -D__wasilibc_printscan_no_long_double \
@@ -370,15 +389,15 @@ $(LIBWASI_EMULATED_SIGNAL_MUSL_OBJS): CFLAGS += \
 
 $(OBJDIR)/%.long-double.o: $(CURDIR)/%.c include_dirs
 	@mkdir -p "$(@D)"
-	$(WASM_CC) $(CFLAGS) -MD -MP -o $@ -c $<
+	$(CC) $(CFLAGS) -MD -MP -o $@ -c $<
 
 $(OBJDIR)/%.no-floating-point.o: $(CURDIR)/%.c include_dirs
 	@mkdir -p "$(@D)"
-	$(WASM_CC) $(CFLAGS) -MD -MP -o $@ -c $<
+	$(CC) $(CFLAGS) -MD -MP -o $@ -c $<
 
 $(OBJDIR)/%.o: $(CURDIR)/%.c include_dirs
 	@mkdir -p "$(@D)"
-	$(WASM_CC) $(CFLAGS) -MD -MP -o $@ -c $<
+	$(CC) $(CFLAGS) -MD -MP -o $@ -c $<
 
 -include $(shell find $(OBJDIR) -name \*.d)
 
@@ -408,8 +427,6 @@ $(LIBWASI_EMULATED_PROCESS_CLOCKS_OBJS): CFLAGS += \
     -I$(LIBC_BOTTOM_HALF_CLOUDLIBC_SRC)
 
 include_dirs:
-	$(RM) -r "$(SYSROOT)"
-
 	#
 	# Install the include files.
 	#
@@ -438,7 +455,7 @@ startup_files: include_dirs
 	#
 	@mkdir -p "$(OBJDIR)"
 	cd "$(OBJDIR)" && \
-	$(WASM_CC) $(CFLAGS) -c $(LIBC_BOTTOM_HALF_CRT_SOURCES) -MD -MP && \
+	$(CC) $(CFLAGS) -c $(LIBC_BOTTOM_HALF_CRT_SOURCES) -MD -MP && \
 	mkdir -p "$(SYSROOT_LIB)" && \
 	mv *.o "$(SYSROOT_LIB)"
 
@@ -456,7 +473,7 @@ finish: startup_files libc
 	# Create empty placeholder libraries.
 	#
 	for name in m rt pthread crypt util xnet resolv dl; do \
-	    $(WASM_AR) crs "$(SYSROOT_LIB)/lib$${name}.a"; \
+	    $(AR) crs "$(SYSROOT_LIB)/lib$${name}.a"; \
 	done
 
 	#
@@ -469,6 +486,9 @@ finish: startup_files libc
 ifneq ($(MALLOC_IMPL),none)
 finish: check-symbols
 endif
+
+DEFINED_SYMBOLS = $(SYSROOT_SHARE)/defined-symbols.txt
+UNDEFINED_SYMBOLS = $(SYSROOT_SHARE)/undefined-symbols.txt
 
 check-symbols: startup_files libc
 	#
@@ -483,28 +503,28 @@ check-symbols: startup_files libc
 	@# LLVM PR40497, which is fixed in 9.0, but not in 8.0.
 	@# Ignore certain llvm builtin symbols such as those starting with __mul
 	@# since these dependencies can vary between llvm versions.
-	"$(WASM_NM)" --defined-only "$(SYSROOT_LIB)"/libc.a "$(SYSROOT_LIB)"/libwasi-emulated-*.a "$(SYSROOT_LIB)"/*.o \
-	    |grep ' [[:upper:]] ' |sed 's/.* [[:upper:]] //' |LC_ALL=C sort > "$(SYSROOT_SHARE)/defined-symbols.txt"
-	for undef_sym in $$("$(WASM_NM)" --undefined-only "$(SYSROOT_LIB)"/libc.a "$(SYSROOT_LIB)"/libc-*.a "$(SYSROOT_LIB)"/*.o \
+	"$(NM)" --defined-only "$(SYSROOT_LIB)"/libc.a "$(SYSROOT_LIB)"/libwasi-emulated-*.a "$(SYSROOT_LIB)"/*.o \
+	    |grep ' [[:upper:]] ' |sed 's/.* [[:upper:]] //' |LC_ALL=C sort > "$(DEFINED_SYMBOLS)"
+	for undef_sym in $$("$(NM)" --undefined-only "$(SYSROOT_LIB)"/libc.a "$(SYSROOT_LIB)"/libc-*.a "$(SYSROOT_LIB)"/*.o \
 	    |grep ' U ' |sed 's/.* U //' |LC_ALL=C sort |uniq); do \
-	    grep -q '\<'$$undef_sym'\>' "$(SYSROOT_SHARE)/defined-symbols.txt" || echo $$undef_sym; \
-	done | grep -v "^__mul" > "$(SYSROOT_SHARE)/undefined-symbols.txt"
-	grep '^_*imported_wasi_' "$(SYSROOT_SHARE)/undefined-symbols.txt" \
+	    grep -q '\<'$$undef_sym'\>' "$(DEFINED_SYMBOLS)" || echo $$undef_sym; \
+	done | grep -v "^__mul" > "$(UNDEFINED_SYMBOLS)"
+	grep '^_*imported_wasi_' "$(UNDEFINED_SYMBOLS)" \
 	    > "$(SYSROOT_LIB)/libc.imports"
 
 	#
-	# Generate a test file that includes all public header files.
+	# Generate a test file that includes all public C header files.
 	#
-	cd "$(SYSROOT)" && \
-	  for header in $$(find include -type f -not -name mman.h -not -name signal.h -not -name times.h -not -name resource.h |grep -v /bits/); do \
-	      echo '#include <'$$header'>' | sed 's/include\///' ; \
-	done |LC_ALL=C sort >share/$(MULTIARCH_TRIPLE)/include-all.c ; \
+	cd "$(SYSROOT_INC)" && \
+	  for header in $$(find . -type f -not -name mman.h -not -name signal.h -not -name times.h -not -name resource.h |grep -v /bits/ |grep -v /c++/); do \
+	      echo '#include <'$$header'>' | sed 's/\.\///' ; \
+	done |LC_ALL=C sort >$(SYSROOT_SHARE)/include-all.c ; \
 	cd - >/dev/null
 
 	#
 	# Test that it compiles.
 	#
-	$(WASM_CC) $(CFLAGS) -fsyntax-only "$(SYSROOT_SHARE)/include-all.c" -Wno-\#warnings
+	$(CC) $(CFLAGS) -fsyntax-only "$(SYSROOT_SHARE)/include-all.c" -Wno-\#warnings
 
 	#
 	# Collect all the predefined macros, except for compiler version macros
@@ -520,7 +540,10 @@ check-symbols: startup_files libc
 	@#
 	@# TODO: Undefine __FLOAT128__ for now since it's not in clang 8.0.
 	@# TODO: Filter out __FLT16_* for now, as not all versions of clang have these.
-	$(WASM_CC) $(CFLAGS) "$(SYSROOT_SHARE)/include-all.c" \
+	@# TODO: Filter out __NO_MATH_ERRNO_ and a few __*WIDTH__ that are new to clang 14.
+	@# TODO: clang defined __FLT_EVAL_METHOD__ until clang 15, so we force-undefine it
+	@# for older versions.
+	$(CC) $(CFLAGS) "$(SYSROOT_SHARE)/include-all.c" \
 	    -isystem $(SYSROOT_INC) \
 	    -std=gnu17 \
 	    -E -dM -Wno-\#warnings \
@@ -538,8 +561,12 @@ check-symbols: startup_files libc
 	    -U__GNUC_PATCHLEVEL__ \
 	    -U__VERSION__ \
 	    -U__FLOAT128__ \
+	    -U__NO_MATH_ERRNO__ \
+	    -U__BITINT_MAXWIDTH__ \
+	    -U__FLT_EVAL_METHOD__ -Wno-builtin-macro-redefined \
 	    | sed -e 's/__[[:upper:][:digit:]]*_ATOMIC_\([[:upper:][:digit:]_]*\)_LOCK_FREE/__compiler_ATOMIC_\1_LOCK_FREE/' \
 	    | grep -v '^#define __FLT16_' \
+	    | grep -v '^#define __\(BOOL\|INT_\(LEAST\|FAST\)\(8\|16\|32\|64\)\|INT\|LONG\|LLONG\|SHRT\)_WIDTH__' \
 	    > "$(SYSROOT_SHARE)/predefined-macros.txt"
 
 	# Check that the computed metadata matches the expected metadata.
@@ -550,4 +577,8 @@ install: finish
 	mkdir -p "$(INSTALL_DIR)"
 	cp -r "$(SYSROOT)/lib" "$(SYSROOT)/share" "$(SYSROOT)/include" "$(INSTALL_DIR)"
 
-.PHONY: default startup_files libc finish install include_dirs
+clean:
+	$(RM) -r "$(OBJDIR)"
+	$(RM) -r "$(SYSROOT)"
+
+.PHONY: default startup_files libc finish install include_dirs clean
