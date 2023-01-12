@@ -5,9 +5,9 @@
 
 include /usr/share/dpkg/buildflags.mk
 
-export NM = llvm-nm-14
-export AR = llvm-ar-14
-export CC = clang-14
+export NM = llvm-nm-13
+export AR = llvm-ar-13
+export CC = clang-13
 
 # stack protector not yet supported, see
 # https://github.com/CraneStation/wasi-libc/issues/157
