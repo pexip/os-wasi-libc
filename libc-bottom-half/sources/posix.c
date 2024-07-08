@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <unistd.h>
 #include <utime.h>
 #include <wasi/libc.h>
@@ -58,9 +59,9 @@ int __wasilibc_open_nomode(const char *path, int oflag) {
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -71,9 +72,9 @@ int access(const char *path, int amode) {
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -88,9 +89,9 @@ ssize_t readlink(
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -101,9 +102,9 @@ int stat(const char *restrict path, struct stat *restrict buf) {
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -114,9 +115,9 @@ int lstat(const char *restrict path, struct stat *restrict buf) {
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -127,9 +128,9 @@ int utime(const char *path, const struct utimbuf *times) {
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -147,9 +148,9 @@ int utimes(const char *path, const struct timeval times[2]) {
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -169,9 +170,9 @@ int unlink(const char *path) {
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -185,9 +186,9 @@ int rmdir(const char *path) {
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -198,21 +199,21 @@ int remove(const char *path) {
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
     // First try to remove it as a file.
     int r = __wasilibc_nocwd___wasilibc_unlinkat(dirfd, relative_path);
-    if (r != 0 && (errno == EISDIR || errno == ENOTCAPABLE)) {
+    if (r != 0 && (errno == EISDIR || errno == ENOENT)) {
         // That failed, but it might be a directory.
         r = __wasilibc_nocwd___wasilibc_rmdirat(dirfd, relative_path);
 
         // If it isn't a directory, we lack capabilities to remove it as a file.
         if (errno == ENOTDIR)
-            errno = ENOTCAPABLE;
+            errno = ENOENT;
     }
     return r;
 }
@@ -221,9 +222,9 @@ int mkdir(const char *path, mode_t mode) {
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -234,9 +235,9 @@ DIR *opendir(const char *dirname) {
     char *relative_path;
     int dirfd = find_relpath(dirname, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return NULL;
     }
 
@@ -252,9 +253,9 @@ int scandir(
     char *relative_path;
     int dirfd = find_relpath(dir, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -265,9 +266,9 @@ int symlink(const char *target, const char *linkpath) {
     char *relative_path;
     int dirfd = find_relpath(linkpath, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -287,8 +288,8 @@ int link(const char *old, const char *new) {
                                            new_dirfd, new_relative_path, 0);
     }
 
-    // We couldn't find a preopen for it; indicate that we lack capabilities.
-    errno = ENOTCAPABLE;
+    // We couldn't find a preopen for it; fail as if we can't find the path.
+    errno = ENOENT;
     return -1;
 }
 
@@ -305,8 +306,48 @@ int rename(const char *old, const char *new) {
                                              new_dirfd, new_relative_path);
     }
 
-    // We couldn't find a preopen for it; indicate that we lack capabilities.
-    errno = ENOTCAPABLE;
+    // We couldn't find a preopen for it; fail as if we can't find the path.
+    errno = ENOENT;
+    return -1;
+}
+
+int chmod(const char *path, mode_t mode) {
+    // TODO: We plan to support this eventually in WASI, but not yet.
+    // Meanwhile, we provide a stub so that libc++'s `<filesystem>`
+    // implementation will build unmodified.
+    errno = ENOSYS;
+    return -1;
+}
+
+int fchmod(int fd, mode_t mode) {
+    // TODO: We plan to support this eventually in WASI, but not yet.
+    // Meanwhile, we provide a stub so that libc++'s `<filesystem>`
+    // implementation will build unmodified.
+    errno = ENOSYS;
+    return -1;
+}
+
+int fchmodat(int fd, const char *path, mode_t mode, int flag) {
+    // TODO: We plan to support this eventually in WASI, but not yet.
+    // Meanwhile, we provide a stub so that libc++'s `<filesystem>`
+    // implementation will build unmodified.
+    errno = ENOSYS;
+    return -1;
+}
+
+int statvfs(const char *__restrict path, struct statvfs *__restrict buf) {
+    // TODO: We plan to support this eventually in WASI, but not yet.
+    // Meanwhile, we provide a stub so that libc++'s `<filesystem>`
+    // implementation will build unmodified.
+    errno = ENOSYS;
+    return -1;
+}
+
+int fstatvfs(int fd, struct statvfs *buf) {
+    // TODO: We plan to support this eventually in WASI, but not yet.
+    // Meanwhile, we provide a stub so that libc++'s `<filesystem>`
+    // implementation will build unmodified.
+    errno = ENOSYS;
     return -1;
 }
 
@@ -317,9 +358,9 @@ __wasilibc_access(const char *path, int mode, int flags)
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -334,9 +375,9 @@ __wasilibc_utimens(const char *path, const struct timespec times[2], int flags)
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -351,9 +392,9 @@ __wasilibc_stat(const char *__restrict path, struct stat *__restrict st, int fla
     char *relative_path;
     int dirfd = find_relpath(path, &relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -369,9 +410,9 @@ __wasilibc_link(const char *oldpath, const char *newpath, int flags)
     int old_dirfd = find_relpath(oldpath, &old_relative_path);
     int new_dirfd = find_relpath(newpath, &new_relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (old_dirfd == -1 || new_dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -387,9 +428,9 @@ __wasilibc_link_oldat(int olddirfd, const char *oldpath, const char *newpath, in
     char *new_relative_path;
     int new_dirfd = find_relpath(newpath, &new_relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (new_dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -405,9 +446,9 @@ __wasilibc_link_newat(const char *oldpath, int newdirfd, const char *newpath, in
     char *old_relative_path;
     int old_dirfd = find_relpath(oldpath, &old_relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (old_dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -423,9 +464,9 @@ __wasilibc_rename_oldat(int fromdirfd, const char *from, const char *to)
     char *to_relative_path;
     int to_dirfd = find_relpath(to, &to_relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (to_dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 
@@ -439,9 +480,9 @@ __wasilibc_rename_newat(const char *from, int todirfd, const char *to)
     char *from_relative_path;
     int from_dirfd = find_relpath(from, &from_relative_path);
 
-    // If we can't find a preopen for it, indicate that we lack capabilities.
+    // If we can't find a preopen for it, fail as if we can't find the path.
     if (from_dirfd == -1) {
-        errno = ENOTCAPABLE;
+        errno = ENOENT;
         return -1;
     }
 

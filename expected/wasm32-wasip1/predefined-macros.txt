@@ -33,10 +33,10 @@
 #define ADJ_TAI 0x0080
 #define ADJ_TICK 0x4000
 #define ADJ_TIMECONST 0x0020
-#define AF_INET 1
-#define AF_INET6 2
+#define AF_INET PF_INET
+#define AF_INET6 PF_INET6
 #define AF_UNIX 3
-#define AF_UNSPEC 0
+#define AF_UNSPEC PF_UNSPEC
 #define ALT_DIGITS 0x2002F
 #define AM_STR 0x20026
 #define ANYMARK 0x01
@@ -97,9 +97,7 @@
 #define CLNEXT CTRL('v')
 #define CLOCKS_PER_SEC ((clock_t)1000000000)
 #define CLOCK_MONOTONIC (&_CLOCK_MONOTONIC)
-#define CLOCK_PROCESS_CPUTIME_ID (&_CLOCK_PROCESS_CPUTIME_ID)
 #define CLOCK_REALTIME (&_CLOCK_REALTIME)
-#define CLOCK_THREAD_CPUTIME_ID (&_CLOCK_THREAD_CPUTIME_ID)
 #define CMIN 1
 #define CMPLX(x,y) __CMPLX(x, y, double)
 #define CMPLXF(x,y) __CMPLX(x, y, float)
@@ -183,6 +181,7 @@
 #define DT_FIFO __WASI_FILETYPE_SOCKET_STREAM
 #define DT_LNK __WASI_FILETYPE_SYMBOLIC_LINK
 #define DT_REG __WASI_FILETYPE_REGULAR_FILE
+#define DT_SOCK 20
 #define DT_UNKNOWN __WASI_FILETYPE_UNKNOWN
 #define D_FMT 0x20029
 #define D_T_FMT 0x20028
@@ -594,6 +593,7 @@
 #define INADDR_ALLSNOOPERS_GROUP ((in_addr_t) 0xe000006a)
 #define INADDR_ANY ((in_addr_t) 0x00000000)
 #define INADDR_BROADCAST ((in_addr_t) 0xffffffff)
+#define INADDR_DUMMY ((in_addr_t) 0xc0000008)
 #define INADDR_LOOPBACK ((in_addr_t) 0x7f000001)
 #define INADDR_MAX_LOCAL_GROUP ((in_addr_t) 0xe00000ff)
 #define INADDR_NONE ((in_addr_t) 0xffffffff)
@@ -1099,7 +1099,7 @@
 #define MSG_BAND 0x04
 #define MSG_HIPRI 0x01
 #define MSG_PEEK __WASI_RIFLAGS_RECV_PEEK
-#define MSG_TRUNC __WASI_RIFLAGS_RECV_DATA_TRUNCATED
+#define MSG_TRUNC __WASI_ROFLAGS_RECV_DATA_TRUNCATED
 #define MSG_WAITALL __WASI_RIFLAGS_RECV_WAITALL
 #define MUXID_ALL (-1)
 #define M_1_PI 0.31830988618379067154
@@ -1120,7 +1120,6 @@
 #define NAN (0.0f/0.0f)
 #define NBBY 8
 #define NCARGS 131072
-#define NDEBUG 1
 #define ND_NA_FLAG_OVERRIDE 0x00000020
 #define ND_NA_FLAG_ROUTER 0x00000080
 #define ND_NA_FLAG_SOLICITED 0x00000040
@@ -1317,6 +1316,9 @@
 #define PAGE_SIZE PAGESIZE
 #define PATH_MAX 4096
 #define PDP_ENDIAN __PDP_ENDIAN
+#define PF_INET 1
+#define PF_INET6 2
+#define PF_UNSPEC 0
 #define PM_STR 0x20027
 #define POLLERR 0x1000
 #define POLLHUP 0x2000
@@ -1466,6 +1468,14 @@
 #define RRFIXEDSZ NS_RRFIXEDSZ
 #define RRQ 01
 #define RS_HIPRI 0x01
+#define RTLD_DEFAULT ((void *)0)
+#define RTLD_GLOBAL 256
+#define RTLD_LAZY 1
+#define RTLD_LOCAL 8
+#define RTLD_NEXT ((void *)-1)
+#define RTLD_NODELETE 4096
+#define RTLD_NOLOAD 4
+#define RTLD_NOW 2
 #define RUSAGE_CHILDREN 2
 #define RUSAGE_SELF 1
 #define R_OK (4)
@@ -1628,6 +1638,18 @@
 #define STRU_F 1
 #define STRU_P 3
 #define STRU_R 2
+#define ST_APPEND 256
+#define ST_IMMUTABLE 512
+#define ST_MANDLOCK 64
+#define ST_NOATIME 1024
+#define ST_NODEV 4
+#define ST_NODIRATIME 2048
+#define ST_NOEXEC 8
+#define ST_NOSUID 2
+#define ST_RDONLY 1
+#define ST_RELATIME 4096
+#define ST_SYNCHRONOUS 16
+#define ST_WRITE 128
 #define SUN_LEN(s) (2+strlen((s)->sun_path))
 #define SUSP 237
 #define SYMLOOP_MAX 40
@@ -1642,7 +1664,7 @@
 #define S_IFBLK (0x6000)
 #define S_IFCHR (0x2000)
 #define S_IFDIR (0x4000)
-#define S_IFIFO (0xc000)
+#define S_IFIFO (0x1000)
 #define S_IFLNK (0xa000)
 #define S_IFMT (S_IFBLK | S_IFCHR | S_IFDIR | S_IFIFO | S_IFLNK | S_IFREG | S_IFSOCK)
 #define S_IFREG (0x8000)
@@ -1735,6 +1757,7 @@
 #define TCP_NOTSENT_LOWAT 25
 #define TCP_QUEUE_SEQ 21
 #define TCP_QUICKACK 12
+#define TCP_RECEIVE_ZEROCOPY_FLAG_TLB_CLEAN_HINT 0x1
 #define TCP_REPAIR 19
 #define TCP_REPAIR_OFF 0
 #define TCP_REPAIR_OFF_NO_WP -1
@@ -2008,6 +2031,7 @@
 #define _Complex_I (0.0f+1.0fi)
 #define _DIRENT_H 
 #define _DIRENT_HAVE_D_TYPE 
+#define _DLFCN_H 
 #define _ENDIAN_H 
 #define _ERRNO_H 
 #define _ERR_H 
@@ -2123,7 +2147,6 @@
 #define _POSIX_STREAM_MAX 8
 #define _POSIX_SYMLINK_MAX 255
 #define _POSIX_SYMLOOP_MAX 8
-#define _POSIX_THREADS _POSIX_VERSION
 #define _POSIX_THREAD_ATTR_STACKADDR _POSIX_VERSION
 #define _POSIX_THREAD_ATTR_STACKSIZE _POSIX_VERSION
 #define _POSIX_THREAD_CPUTIME _POSIX_VERSION
@@ -2313,6 +2336,7 @@
 #define _SYS_REG_H 
 #define _SYS_SELECT_H 
 #define _SYS_SOCKET_H 
+#define _SYS_STATVFS_H 
 #define _SYS_STAT_H 
 #define _SYS_SYSCALL_H 
 #define _SYS_SYSINFO_H 
@@ -2453,6 +2477,7 @@
 #define __DEFINED_wctype_t 
 #define __DEFINED_wint_t 
 #define __FINITE_MATH_ONLY__ 0
+#define __FLOAT128__ 1
 #define __FLT(x) (__IS_REAL(x) && sizeof(x) == sizeof(float))
 #define __FLTCX(x) (__IS_CX(x) && sizeof(x) == sizeof(float complex))
 #define __FLT_DECIMAL_DIG__ 9
@@ -2648,7 +2673,6 @@
 #define __OPENCL_MEMORY_SCOPE_SUB_GROUP 4
 #define __OPENCL_MEMORY_SCOPE_WORK_GROUP 1
 #define __OPENCL_MEMORY_SCOPE_WORK_ITEM 0
-#define __OPTIMIZE__ 1
 #define __ORDER_BIG_ENDIAN__ 4321
 #define __ORDER_LITTLE_ENDIAN__ 1234
 #define __ORDER_PDP_ENDIAN__ 3412
@@ -3073,7 +3097,6 @@
 #define and_eq &=
 #define asin(x) __tg_real_complex(asin, (x))
 #define asinh(x) __tg_real_complex(asinh, (x))
-#define assert(x) (void)0
 #define atan(x) __tg_real_complex(atan, (x))
 #define atan2(x,y) __tg_real_2(atan2, (x), (y))
 #define atanh(x) __tg_real_complex(atanh, (x))
@@ -3137,6 +3160,7 @@
 #define fsfilcnt64_t fsfilcnt_t
 #define fstat64 fstat
 #define fstatat64 fstatat
+#define fstatvfs64 fstatvfs
 #define ftello64 ftello
 #define ftruncate64 ftruncate
 #define getdents64 getdents
@@ -3320,6 +3344,7 @@
 #define st_mtime st_mtim.tv_sec
 #define stat64 stat
 #define static_assert _Static_assert
+#define statvfs64 statvfs
 #define stderr (stderr)
 #define stdin (stdin)
 #define stdout (stdout)
