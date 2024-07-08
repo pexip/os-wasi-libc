@@ -1,35 +1,44 @@
+Author: Ximin Luo <infinity0@debian.org>
+Description: Prevent spurious rebuilds
+Forwarded: not-needed
+
 Index: wasi-libc/Makefile
 ===================================================================
 --- wasi-libc.orig/Makefile
 +++ wasi-libc/Makefile
-@@ -449,6 +449,8 @@ include_dirs:
- 	# Remove selected header files.
- 	$(RM) $(patsubst %,$(SYSROOT_INC)/%,$(MUSL_OMIT_HEADERS))
+@@ -743,12 +743,15 @@ ifeq ($(WASI_SNAPSHOT), p2)
+ 		> "$(SYSROOT_INC)/__wasi_snapshot.h"
+ endif
  
 +	touch $@
 +
- startup_files: include_dirs
+ startup_files: include_dirs $(LIBC_BOTTOM_HALF_CRT_OBJS)
  	#
- 	# Build the startup files.
-@@ -459,6 +461,8 @@ startup_files: include_dirs
+ 	# Install the startup files (crt1.o etc).
+ 	#
  	mkdir -p "$(SYSROOT_LIB)" && \
- 	mv *.o "$(SYSROOT_LIB)"
- 
+ 	cp $(LIBC_BOTTOM_HALF_CRT_OBJS) "$(SYSROOT_LIB)"
 +	touch $@
-+
- libc: include_dirs \
+ 
+ # TODO: As of this writing, wasi_thread_start.s uses non-position-independent
+ # code, and I'm not sure how to make it position-independent.  Once we've done
+@@ -768,6 +771,7 @@ endif
+ endif
+ 
+ libc_so: include_dirs $(LIBC_SO)
++	touch $@
+ 
+ STATIC_LIBS = \
      $(SYSROOT_LIB)/libc.a \
-     $(SYSROOT_LIB)/libc-printscan-long-double.a \
-@@ -468,6 +472,8 @@ libc: include_dirs \
-     $(SYSROOT_LIB)/libwasi-emulated-getpid.a \
-     $(SYSROOT_LIB)/libwasi-emulated-signal.a
+@@ -784,6 +788,7 @@ STATIC_LIBS += \
+ endif
  
+ libc: include_dirs $(STATIC_LIBS)
 +	touch $@
-+
+ 
  finish: startup_files libc
  	#
- 	# Create empty placeholder libraries.
-@@ -479,6 +485,7 @@ finish: startup_files libc
+@@ -796,6 +801,7 @@ finish: startup_files libc
  	#
  	# The build succeeded! The generated sysroot is in $(SYSROOT).
  	#
@@ -37,10 +46,10 @@ Index: wasi-libc/Makefile
  
  # The check for defined and undefined symbols expects there to be a heap
  # alloctor (providing malloc, calloc, free, etc). Skip this step if the build
-@@ -580,5 +587,6 @@ install: finish
- clean:
+@@ -982,5 +988,6 @@ clean:
+ 	$(RM) -r "$(BINDING_WORK_DIR)"
  	$(RM) -r "$(OBJDIR)"
  	$(RM) -r "$(SYSROOT)"
 +	$(RM) -f include_dirs startup_files libc finish
  
- .PHONY: default startup_files libc finish install include_dirs clean
+ .PHONY: default startup_files libc libc_so finish install include_dirs clean check-symbols bindings

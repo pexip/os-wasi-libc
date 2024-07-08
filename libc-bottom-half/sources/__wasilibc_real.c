@@ -659,3 +659,13 @@ __wasi_errno_t __wasi_sock_shutdown(
     return (uint16_t) ret;
 }
 
+#ifdef _REENTRANT
+int32_t __imported_wasi_thread_spawn(int32_t arg0) __attribute__((
+    __import_module__("wasi"),
+    __import_name__("thread-spawn")
+));
+
+int32_t __wasi_thread_spawn(void* start_arg) {
+    return __imported_wasi_thread_spawn((int32_t) start_arg);
+}
+#endif

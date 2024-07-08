@@ -5,13 +5,14 @@
 
 include /usr/share/dpkg/buildflags.mk
 
-export NM = llvm-nm-13
-export AR = llvm-ar-13
-export CC = clang-13
+export NM = llvm-nm-17
+export AR = llvm-ar-17
+export CC = clang-17
 
 # stack protector not yet supported, see
 # https://github.com/CraneStation/wasi-libc/issues/157
-export EXTRA_CFLAGS = $(CFLAGS) $(LDFLAGS) -fno-stack-protector
+# https://bugs.debian.org/1051815
+export EXTRA_CFLAGS = $(CFLAGS) $(LDFLAGS) -fno-stack-protector -fcf-protection=none
 
 %:
 	dh $@

@@ -17,12 +17,6 @@ Files: libc-bottom-half/cloudlibc/*
 Copyright: 2015-2017 Nuxi (https://nuxi.nl/) and contributors
 License: BSD-2-clause
 
-Files: libc-bottom-half/libpreopen/*
-Copyright:
- 2016-2017 Stanley Uche Godfrey
- 2016-2018 Jonathan Anderson
-License: BSD-2-clause
-
 Files: tools/wasi-headers/*
 Copyright:
  2018-2020 Dan Gohman <sunfish@mozilla.com>
@@ -220,10 +214,6 @@ Copyright: 2016 Mahesh Bodapati
            2016 Jaydeep Patil
            2016 Imagination Technologies
 License: MIT
-
-Files: libc-top-half/musl/src/string/arm/memcpy_le.S
-Copyright: 2008 The Android Open Source Project
-License: BSD-2-clause
 
 License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a
