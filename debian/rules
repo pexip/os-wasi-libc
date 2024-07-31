@@ -23,6 +23,8 @@ build:
 
 override_dh_auto_build:
 	dh_auto_build -- finish
+	dh_auto_build -- WASI_SNAPSHOT=p2 finish
 
 override_dh_auto_install:
 	dh_auto_install -- INSTALL_DIR=$(CURDIR)/debian/tmp/usr
+	dh_auto_install -- INSTALL_DIR=$(CURDIR)/debian/tmp/usr WASI_SNAPSHOT=p2

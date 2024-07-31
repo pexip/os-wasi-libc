@@ -1,3 +1,6 @@
 usr/share/wasm32-wasi
 usr/lib/wasm32-wasi
 usr/include/wasm32-wasi/* /usr/include/wasm32-wasi
+usr/share/wasm32-wasip2
+usr/lib/wasm32-wasip2
+usr/include/wasm32-wasip2/* /usr/include/wasm32-wasip2

@@ -1,5 +1,5 @@
 # wasm object files count as arch-independent for now,
 # at least until we starting offering Debian in wasm
-wasi-libc: no-code-sections [usr/lib/*-wasi/*.a]
+wasi-libc: no-code-sections [usr/lib/*-wasi*/*.a]
 # this one is for ftp-masters, which uses bullseye lintian with different output!
-wasi-libc binary: arch-independent-package-contains-binary-or-object *usr/lib/*-wasi/*.a*
+wasi-libc binary: arch-independent-package-contains-binary-or-object *usr/lib/*-wasi*/*.a*
