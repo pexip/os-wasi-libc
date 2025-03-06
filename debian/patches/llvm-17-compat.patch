@@ -10,3 +10,15 @@ Index: wasi-libc/expected/wasm32-wasip1/undefined-symbols.txt
  __trunctfdf2
  __trunctfsf2
  __unordtf2
+Index: wasi-libc/expected/wasm32-wasip2/undefined-symbols.txt
+===================================================================
+--- wasi-libc.orig/expected/wasm32-wasip2/undefined-symbols.txt
++++ wasi-libc/expected/wasm32-wasip2/undefined-symbols.txt
+@@ -62,6 +62,7 @@ __lttf2
+ __netf2
+ __stack_pointer
+ __subtf3
++__tls_base
+ __trunctfdf2
+ __trunctfsf2
+ __unordtf2
