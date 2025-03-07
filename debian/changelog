@@ -1,3 +1,9 @@
+wasi-libc (0.0~git20240708.3f43ea9-2+pexip24u1) pexip; urgency=medium
+
+  * New upstream release
+
+ -- Huw Jones <huw@pexip.com>  Fri, 06 Mar 2025 16:16:21 +0000
+
 wasi-libc (0.0~git20240708.3f43ea9-2) unstable; urgency=medium
 
   * upload to unstable
