@@ -1,12 +1,17 @@
-Author: Ximin Luo <infinity0@debian.org>
-Description: Prevent spurious rebuilds
-Forwarded: not-needed
+From: Ximin Luo <infinity0@debian.org>
+Date: Thu, 5 Sep 2024 15:14:01 +0200
+Subject: Prevent spurious rebuilds
 
-Index: wasi-libc/Makefile
-===================================================================
---- wasi-libc.orig/Makefile
-+++ wasi-libc/Makefile
-@@ -743,12 +743,15 @@ ifeq ($(WASI_SNAPSHOT), p2)
+Forwarded: not-needed
+---
+ Makefile | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index 0d2a314..f8d4ed2 100644
+--- a/Makefile
++++ b/Makefile
+@@ -738,12 +738,15 @@ ifeq ($(WASI_SNAPSHOT), p2)
  		> "$(SYSROOT_INC)/__wasi_snapshot.h"
  endif
  
@@ -22,7 +27,7 @@ Index: wasi-libc/Makefile
  
  # TODO: As of this writing, wasi_thread_start.s uses non-position-independent
  # code, and I'm not sure how to make it position-independent.  Once we've done
-@@ -768,6 +771,7 @@ endif
+@@ -763,6 +766,7 @@ endif
  endif
  
  libc_so: include_dirs $(LIBC_SO)
@@ -30,15 +35,15 @@ Index: wasi-libc/Makefile
  
  STATIC_LIBS = \
      $(SYSROOT_LIB)/libc.a \
-@@ -784,6 +788,7 @@ STATIC_LIBS += \
+@@ -779,6 +783,7 @@ STATIC_LIBS += \
  endif
  
  libc: include_dirs $(STATIC_LIBS)
 +	touch $@
  
- finish: startup_files libc
+ dummy_libs:
  	#
-@@ -796,6 +801,7 @@ finish: startup_files libc
+@@ -793,6 +798,7 @@ finish: startup_files libc dummy_libs
  	#
  	# The build succeeded! The generated sysroot is in $(SYSROOT).
  	#
@@ -46,10 +51,10 @@ Index: wasi-libc/Makefile
  
  # The check for defined and undefined symbols expects there to be a heap
  # alloctor (providing malloc, calloc, free, etc). Skip this step if the build
-@@ -982,5 +988,6 @@ clean:
+@@ -987,5 +993,6 @@ clean:
  	$(RM) -r "$(BINDING_WORK_DIR)"
  	$(RM) -r "$(OBJDIR)"
  	$(RM) -r "$(SYSROOT)"
 +	$(RM) -f include_dirs startup_files libc finish
  
- .PHONY: default startup_files libc libc_so finish install include_dirs clean check-symbols bindings
+ .PHONY: default startup_files libc libc_so dummy_libs finish install include_dirs clean check-symbols bindings

@@ -6,7 +6,7 @@ XSBC-Pexip-Original-Maintainer: Debian Rust Maintainers <pkg-rust-maintainers@al
 XSBC-Pexip-Original-Uploaders:
  Ximin Luo <infinity0@debian.org>,
  Fabian Grünbichler <debian@fabian.gruenbichler.email>
-Build-Depends: debhelper-compat (= 13), clang-17, llvm-17
+Build-Depends: debhelper-compat (= 13), clang-19, llvm-19
 Standards-Version: 4.6.2
 Homepage: https://github.com/CraneStation/wasi-libc
 Vcs-Browser: https://salsa.debian.org/rust-team/wasi-libc

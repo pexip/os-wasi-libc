@@ -397,7 +397,7 @@ CFLAGS += -I$(LIBC_BOTTOM_HALF_CLOUDLIBC_SRC)
 endif
 
 ifeq ($(WASI_SNAPSHOT), p2)
-EXTRA_CFLAGS += -D__wasilibc_use_wasip2
+CFLAGS += -D__wasilibc_use_wasip2
 endif
 
 # Expose the public headers to the implementation. We use `-isystem` for
@@ -537,11 +537,6 @@ MUSL_OMIT_HEADERS += \
 
 ifeq ($(WASI_SNAPSHOT), p1)
 MUSL_OMIT_HEADERS += "netdb.h"
-endif
-
-ifeq ($(THREAD_MODEL), single)
-# Remove headers not supported in single-threaded mode.
-MUSL_OMIT_HEADERS += "pthread.h"
 endif
 
 default: finish
@@ -785,14 +780,16 @@ endif
 
 libc: include_dirs $(STATIC_LIBS)
 
-finish: startup_files libc
+dummy_libs:
 	#
 	# Create empty placeholder libraries.
 	#
+	mkdir -p "$(SYSROOT_LIB)" && \
 	for name in m rt pthread crypt util xnet resolv; do \
 	    $(AR) crs "$(SYSROOT_LIB)/lib$${name}.a"; \
 	done
 
+finish: startup_files libc dummy_libs
 	#
 	# The build succeeded! The generated sysroot is in $(SYSROOT).
 	#
@@ -836,7 +833,7 @@ check-symbols: startup_files libc
 	for undef_sym in $$("$(NM)" --undefined-only "$(SYSROOT_LIB)"/libc.a "$(SYSROOT_LIB)"/libc-*.a "$(SYSROOT_LIB)"/*.o \
 	    |grep ' U ' |sed 's/.* U //' |LC_ALL=C sort |uniq); do \
 	    grep -q '\<'$$undef_sym'\>' "$(DEFINED_SYMBOLS)" || echo $$undef_sym; \
-	done | grep -E -v "^__mul|__memory_base" > "$(UNDEFINED_SYMBOLS)"
+	done | grep -E -v "^__mul|__memory_base|__indirect_function_table|__tls_base" > "$(UNDEFINED_SYMBOLS)"
 	grep '^_*imported_wasi_' "$(UNDEFINED_SYMBOLS)" \
 	    > "$(SYSROOT_LIB)/libc.imports"
 
@@ -873,10 +870,14 @@ check-symbols: startup_files libc
 	@# TODO: Filter out __FPCLASS_* that are new to clang 17.
 	@# TODO: Filter out __FLT128_* that are new to clang 18.
 	@# TODO: Filter out __MEMORY_SCOPE_* that are new to clang 18.
+	@# TODO: Filter out __GCC_(CON|DE)STRUCTIVE_SIZE that are new to clang 19.
+	@# TODO: Filter out __STDC_EMBED_* that are new to clang 19.
 	@# TODO: clang defined __FLT_EVAL_METHOD__ until clang 15, so we force-undefine it
 	@# for older versions.
 	@# TODO: Undefine __wasm_mutable_globals__ and __wasm_sign_ext__, that are new to
 	@# clang 16 for -mcpu=generic.
+	@# TODO: Undefine __wasm_multivalue__ and __wasm_reference_types__, that are new to
+	@# clang 19 for -mcpu=generic.
 	@# TODO: As of clang 16, __GNUC_VA_LIST is #defined without a value.
 	$(CC) $(CFLAGS) "$(SYSROOT_SHARE)/include-all.c" \
 	    -isystem $(SYSROOT_INC) \
@@ -893,6 +894,8 @@ check-symbols: startup_files libc
 	    -U__clang_wide_literal_encoding__ \
 	    -U__wasm_mutable_globals__ \
 	    -U__wasm_sign_ext__ \
+	    -U__wasm_multivalue__ \
+	    -U__wasm_reference_types__ \
 	    -U__GNUC__ \
 	    -U__GNUC_MINOR__ \
 	    -U__GNUC_PATCHLEVEL__ \
@@ -907,6 +910,8 @@ check-symbols: startup_files libc
 	    | grep -v '^#define __FPCLASS_' \
 	    | grep -v '^#define __FLT128_' \
 	    | grep -v '^#define __MEMORY_SCOPE_' \
+	    | grep -v '^#define __GCC_\(CON\|DE\)STRUCTIVE_SIZE' \
+	    | grep -v '^#define __STDC_EMBED_' \
 	    | grep -v '^#define NDEBUG' \
 	    | grep -v '^#define __OPTIMIZE__' \
 	    | grep -v '^#define assert' \
@@ -983,4 +988,4 @@ clean:
 	$(RM) -r "$(OBJDIR)"
 	$(RM) -r "$(SYSROOT)"
 
-.PHONY: default startup_files libc libc_so finish install include_dirs clean check-symbols bindings
+.PHONY: default startup_files libc libc_so dummy_libs finish install include_dirs clean check-symbols bindings

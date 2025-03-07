@@ -1,11 +1,16 @@
-Author: Fabian Grünbichler <debian@fabian.gruenbichler.email>
-Description: disable on-by-default linker warning
-Forwarded: not-needed
+From: =?utf-8?q?Fabian_Gr=C3=BCnbichler?= <debian@fabian.gruenbichler.email>
+Date: Thu, 5 Sep 2024 15:14:01 +0200
+Subject: disable on-by-default linker warning
 
-Index: wasi-libc/Makefile
-===================================================================
---- wasi-libc.orig/Makefile
-+++ wasi-libc/Makefile
+Forwarded: not-needed
+---
+ Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile b/Makefile
+index f8d4ed2..2ebaee2 100644
+--- a/Makefile
++++ b/Makefile
 @@ -380,6 +380,7 @@ CFLAGS += -Wall -Wextra -Werror \
    -Wno-missing-braces \
    -Wno-ignored-pragmas \

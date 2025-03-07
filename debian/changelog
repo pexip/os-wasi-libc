@@ -1,3 +1,22 @@
+wasi-libc (0.0~git20240708.3f43ea9-2) unstable; urgency=medium
+
+  * upload to unstable
+
+ -- Fabian Grünbichler <debian@fabian.gruenbichler.email>  Fri, 25 Oct 2024 22:50:31 +0200
+
+wasi-libc (0.0~git20240708.3f43ea9-1) experimental; urgency=medium
+
+  * new upstream version needed for rustc 1.82+
+  * switch to LLVM 19
+
+ -- Fabian Grünbichler <debian@fabian.gruenbichler.email>  Tue, 22 Oct 2024 12:42:09 +0200
+
+wasi-libc (0.0~git20240411.9e8c542-4) unstable; urgency=medium
+
+  * switch to LLVM 18
+
+ -- Fabian Grünbichler <debian@fabian.gruenbichler.email>  Mon, 09 Sep 2024 14:14:58 +0200
+
 wasi-libc (0.0~git20240411.9e8c542-3+pexip24u1) pexip; urgency=medium
 
   * New upstream release
