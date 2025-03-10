@@ -1,3 +1,16 @@
+wasi-libc (0.0~git20241209.574b88d-2) unstable; urgency=medium
+
+  * upload to unstable
+
+ -- Fabian Grünbichler <debian@fabian.gruenbichler.email>  Thu, 20 Feb 2025 19:25:44 +0100
+
+wasi-libc (0.0~git20241209.574b88d-1) experimental; urgency=medium
+
+  [ Fabian Grünbichler ]
+  * new upstream release for rustc 1.85.0
+
+ -- Fabian Grünbichler <debian@fabian.gruenbichler.email>  Mon, 17 Feb 2025 11:22:13 +0100
+
 wasi-libc (0.0~git20240708.3f43ea9-2+pexip24u1) pexip; urgency=medium
 
   * New upstream release

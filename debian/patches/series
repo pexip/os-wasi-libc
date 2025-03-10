@@ -1,3 +1,2 @@
 dont-rebuild-install.patch
 disable-warning.patch
-adapt-to-LLVM-19.patch
